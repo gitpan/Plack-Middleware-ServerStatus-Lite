@@ -8,7 +8,7 @@ use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub prepare_app {
     my $self = shift;
@@ -34,18 +34,42 @@ sub call {
 
     $self->set_state("A", $env);
 
+    my $res;
     try {
         if( $self->path && $env->{PATH_INFO} eq $self->path ) {
-            $self->_handle_server_status($env);
+            $res = $self->_handle_server_status($env);
+            $self->set_state("_");
         }
         else {
-            $self->app->($env);
+            my $app_res = $self->app->($env);
+
+            if ( ref $app_res eq 'ARRAY' ) {
+                $res = $app_res;
+                $self->set_state("_");
+            }
+            else {
+                $res = sub {
+                    my $respond = shift;
+
+                    my $writer;
+                    try {
+                        $app_res->(sub { return $writer = $respond->(@_) });
+                    } catch {
+                        if ($writer) {
+                            $writer->close;
+                        }
+                        die $_;
+                    } finally {
+                        $self->set_state("_");
+                    };
+                };
+            }
         }
     } catch {
-        die $_;
-    } finally {
         $self->set_state("_");
+        die $_;
     };
+    return $res;
 }
 
 my $prev='';
@@ -166,7 +190,7 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
 
 =head1 DESCRIPTION
 
-Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multi-process Plack servers such as Starman and Starlet. This middleware changes status only before and after executing the application. so cannot monitor keepalive session and network i/o wait. 
+Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multiprocess Plack servers such as Starman and Starlet. This middleware changes status only before and after executing the application. so cannot monitor keepalive session and network i/o wait. 
 
 =head1 CONFIGURATIONS
 
