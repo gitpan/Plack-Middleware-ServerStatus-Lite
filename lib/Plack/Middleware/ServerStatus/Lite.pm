@@ -8,7 +8,7 @@ use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub prepare_app {
     my $self = shift;
@@ -116,7 +116,7 @@ sub _handle_server_status {
         my $busy = 0;
 
         my $parent_pid = getppid;
-        my $ps = `LC_ALL=C command ps -o ppid,pid`;
+        my $ps = `LC_ALL=C command ps x -o ppid,pid`;
         $ps =~ s/^\s+//mg;
         my @all_workers;
         for my $line ( split /\n/, $ps ) {
