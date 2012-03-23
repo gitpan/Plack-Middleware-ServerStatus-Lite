@@ -19,6 +19,7 @@ t/00_compile.t
 t/01_builder.t
 t/02_server.t
 t/03_server_delayed_res.t
+t/04_json.t
 xt/01_podspell.t
 xt/02_perlcritic.t
 xt/03_pod.t
