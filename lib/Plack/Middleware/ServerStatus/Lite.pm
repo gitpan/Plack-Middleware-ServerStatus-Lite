@@ -12,17 +12,26 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 sub prepare_app {
     my $self = shift;
     $self->{uptime} = time;
 
     if ( $self->allow ) {
-        my $cidr = Net::CIDR::Lite->new();
+        my $cidr4 = Net::CIDR::Lite->new();
+        my $cidr6 = Net::CIDR::Lite->new();
         my @ip = ref $self->allow ? @{$self->allow} : ($self->allow);
-        $cidr->add_any( $_ ) for @ip;
-        $self->{__cidr} = $cidr;
+        for (@ip) {
+            # hacky check, but actual checks are done in Net::CIDR::Lite.
+            if (/:/) {
+                $cidr6->add_any($_);
+            } else {
+                $cidr4->add_any($_);
+            }
+        }
+        $self->{__cidr4} = $cidr4;
+        $self->{__cidr6} = $cidr6;
     }
 
     if ( $self->scoreboard ) {
@@ -136,9 +145,10 @@ sub _handle_server_status {
         my @all_workers;
         if ( ! $self->skip_ps_command ) {
             my $parent_pid = getppid;
-            my $ps = `LC_ALL=C command ps -e -o ppid,pid`;
+            my $psopt = $^O =~ m/bsd$/ ? '-ax' : '-e';
+            my $ps = `LC_ALL=C command ps $psopt -o ppid,pid`;
             $ps =~ s/^\s+//mg;
-        
+
             for my $line ( split /\n/, $ps ) {
                 next if $line =~ m/^\D/;
                 my ($ppid, $pid) = split /\s+/, $line, 2;
@@ -195,8 +205,8 @@ EOF
 
 sub allowed {
     my ( $self , $address ) = @_;
-    return unless $self->{__cidr};
-    return $self->{__cidr}->find( $address );
+    return unless $self->{__cidr4};
+    return ($self->{__cidr4}->find( $address ) or $self->{__cidr6}->find( $address ));
 }
 
 sub counter {
@@ -321,7 +331,7 @@ location that displays server status
   allow => '127.0.0.1'
   allow => ['192.168.0.0/16', '10.0.0.0/8']
 
-host based access control of a page of server status
+host based access control of a page of server status. supports IPv6 address.
 
 =item scoreboard
 
