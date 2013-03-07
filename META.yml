@@ -22,7 +22,7 @@ no_index:
     - t
     - xt
 requires:
-  JSON: 0
+  JSON: 2.53
   Net::CIDR::Lite: 0
   Parallel::Scoreboard: 0.02
   Plack::Middleware: 0
@@ -31,4 +31,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite.git
-version: 0.11
+version: 0.12
