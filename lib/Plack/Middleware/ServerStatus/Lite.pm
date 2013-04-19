@@ -12,26 +12,34 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 sub prepare_app {
     my $self = shift;
     $self->{uptime} = time;
 
     if ( $self->allow ) {
-        my $cidr4 = Net::CIDR::Lite->new();
-        my $cidr6 = Net::CIDR::Lite->new();
         my @ip = ref $self->allow ? @{$self->allow} : ($self->allow);
+        my @ipv4;
+        my @ipv6;
         for (@ip) {
             # hacky check, but actual checks are done in Net::CIDR::Lite.
             if (/:/) {
-                $cidr6->add_any($_);
+                push @ipv6, $_;
             } else {
-                $cidr4->add_any($_);
+                push @ipv4, $_;
             }
         }
-        $self->{__cidr4} = $cidr4;
-        $self->{__cidr6} = $cidr6;
+        if ( @ipv4 ) {
+            my $cidr4 = Net::CIDR::Lite->new();
+            $cidr4->add_any($_) for @ipv4;
+            $self->{__cidr4} = $cidr4;
+        }
+        if ( @ipv6 ) {
+            my $cidr6 = Net::CIDR::Lite->new();
+            $cidr6->add_any($_) for @ipv6;
+            $self->{__cidr6} = $cidr6;
+        }
     }
 
     if ( $self->scoreboard ) {
@@ -189,6 +197,7 @@ IdleWorkers: $idle
 pid status remote_addr host method uri protocol ss
 $raw_stats
 EOF
+        chomp $body;
         $stats{BusyWorkers} = $busy;
         $stats{IdleWorkers} = $idle;
         $stats{stats} = \@raw_stats;
@@ -205,8 +214,12 @@ EOF
 
 sub allowed {
     my ( $self , $address ) = @_;
+    if ( $address =~ /:/) {
+        return unless $self->{__cidr6};
+        return $self->{__cidr6}->find( $address );
+    }
     return unless $self->{__cidr4};
-    return ($self->{__cidr4}->find( $address ) or $self->{__cidr6}->find( $address ));
+    return $self->{__cidr4}->find( $address );
 }
 
 sub counter {
