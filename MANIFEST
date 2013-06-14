@@ -1,5 +1,3 @@
-.gitignore
-.travis.yml
 Build.PL
 Changes
 LICENSE
@@ -15,9 +13,5 @@ t/03_server_delayed_res.t
 t/04_json.t
 t/05_counter.t
 t/06_counter_delayed_res.t
-t/07_skip_ps.t
-Build.PL
-LICENSE
-META.json
 META.yml
 MANIFEST
