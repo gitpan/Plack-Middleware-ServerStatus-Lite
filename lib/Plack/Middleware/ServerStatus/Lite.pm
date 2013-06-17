@@ -3,7 +3,7 @@ package Plack::Middleware::ServerStatus::Lite;
 use strict;
 use warnings;
 use parent qw(Plack::Middleware);
-use Plack::Util::Accessor qw(scoreboard path allow counter_file);
+use Plack::Util::Accessor qw(scoreboard path allow counter_file skip_ps_command);
 use Plack::Util;
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 sub prepare_app {
     my $self = shift;
@@ -133,26 +133,30 @@ sub _handle_server_status {
     $duration .= "$upsince seconds";
 
     my $body="Uptime: $self->{uptime} ($duration)\n";
-    my %stats = ( 'Uptime' => $self->{uptime} );
+    my %status = ( 'Uptime' => $self->{uptime} );
 
     if ( $self->counter_file ) {
         my ($counter,$bytes) = $self->counter;
         my $kbytes = int($bytes / 1_000);
         $body .= sprintf "Total Accesses: %s\n", $counter;
         $body .= sprintf "Total Kbytes: %s\n", $kbytes;
-        $stats{TotalAccesses} = $counter;
-        $stats{TotalKbytes} = $kbytes;
+        $status{TotalAccesses} = $counter;
+        $status{TotalKbytes} = $kbytes;
     }
 
     if ( my $scoreboard = $self->{__scoreboard} ) {
         my $stats = $scoreboard->read_all();
-        my $raw_stats='';
         my $idle = 0;
         my $busy = 0;
 
-        my @all_workers;
+        my @all_workers = ();
         my $parent_pid = getppid;
-        if ( $^O eq 'cygwin' ) {
+        
+        if ( $self->skip_ps_command ) {
+            # none
+            @all_workers = keys %$stats;
+        }
+        elsif ( $^O eq 'cygwin' ) {
             my $ps = `ps -ef`;
             $ps =~ s/^\s+//mg;
             for my $line ( split /\n/, $ps ) {
@@ -165,7 +169,6 @@ sub _handle_server_status {
             my $psopt = $^O =~ m/bsd$/ ? '-ax' : '-e';
             my $ps = `LC_ALL=C command ps $psopt -o ppid,pid`;
             $ps =~ s/^\s+//mg;
-
             for my $line ( split /\n/, $ps ) {
                 next if $line =~ m/^\D/;
                 my ($ppid, $pid) = split /\s+/, $line, 2;
@@ -173,10 +176,12 @@ sub _handle_server_status {
             }
         }
         else {
+            # todo windows?
             @all_workers = keys %$stats;
         }
 
-        my @raw_stats;
+        my $process_status = '';
+        my @process_status;
         for my $pid ( @all_workers  ) {
             if ( exists $stats->{$pid} && $stats->{$pid} =~ m!^A! ) {
                 $busy++;
@@ -185,18 +190,18 @@ sub _handle_server_status {
                 $idle++;
             }
 
-            my @pstats = split /\s/, ($stats->{$pid} || '.');
-            $pstats[6] = time - $pstats[6] if defined $pstats[6];
-            $raw_stats .= sprintf "%s %s\n", $pid, join(" ", @pstats);
-            push @raw_stats, {
+            my @pstatus = split /\s/, ($stats->{$pid} || '.');
+            $pstatus[6] = time - $pstatus[6] if defined $pstatus[6];
+            $process_status .= sprintf "%s %s\n", $pid, join(" ", @pstatus);
+            push @process_status, {
                 pid => $pid,
-                status => defined $pstats[0] ? $pstats[0] : undef, 
-                remote_addr => defined $pstats[1] ? $pstats[1] : undef,
-                host => defined $pstats[2] ? $pstats[2] : undef,
-                method => defined $pstats[3] ? $pstats[3] : undef,
-                uri => defined $pstats[4] ? $pstats[4] : undef,
-                protocol => defined $pstats[5] ? $pstats[5] : undef,
-                ss => defined $pstats[6] ? $pstats[6] : undef
+                status => defined $pstatus[0] ? $pstatus[0] : undef, 
+                remote_addr => defined $pstatus[1] ? $pstatus[1] : undef,
+                host => defined $pstatus[2] ? $pstatus[2] : undef,
+                method => defined $pstatus[3] ? $pstatus[3] : undef,
+                uri => defined $pstatus[4] ? $pstatus[4] : undef,
+                protocol => defined $pstatus[5] ? $pstatus[5] : undef,
+                ss => defined $pstatus[6] ? $pstatus[6] : undef
             };
         }
         $body .= <<EOF;
@@ -204,19 +209,19 @@ BusyWorkers: $busy
 IdleWorkers: $idle
 --
 pid status remote_addr host method uri protocol ss
-$raw_stats
+$process_status
 EOF
         chomp $body;
-        $stats{BusyWorkers} = $busy;
-        $stats{IdleWorkers} = $idle;
-        $stats{stats} = \@raw_stats;
+        $status{BusyWorkers} = $busy;
+        $status{IdleWorkers} = $idle;
+        $status{stats} = \@process_status;
     }
     else {
        $body .= "WARN: Scoreboard has been disabled\n";
-       $stats{WARN} = 'Scoreboard has been disabled';
+       $status{WARN} = 'Scoreboard has been disabled';
     }
     if ( ($env->{QUERY_STRING} || '') =~ m!\bjson\b!i ) {
-        return [200, ['Content-Type' => 'application/json; charset=utf-8'], [ JSON::encode_json(\%stats) ]];
+        return [200, ['Content-Type' => 'application/json; charset=utf-8'], [ JSON::encode_json(\%status) ]];
     }
     return [200, ['Content-Type' => 'text/plain'], [ $body ]];
 }
@@ -366,6 +371,15 @@ Scoreboard directory, Middleware::ServerStatus::Lite stores processes activity i
   counter_file => '/path/to/counter_file'
 
 Enable Total Access counter
+
+=item skip_ps_command
+
+  skip_ps_command => 1 or 0
+
+ServerStatus::Lite executes `ps command` to find all worker processes. But in some systems
+that does not mount "/proc" can not find any processes.
+IF 'skip_ps_command' is true, ServerStatus::Lite does not `ps`, and checks only processes that
+already did process requests.
 
 =back
 
