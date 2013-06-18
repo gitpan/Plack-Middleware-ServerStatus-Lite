@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 sub prepare_app {
     my $self = shift;
@@ -401,6 +401,8 @@ Masahiro Nagano E<lt>kazeburo {at} gmail.comE<gt>
 =head1 SEE ALSO
 
 Original ServerStatus by cho45 <http://github.com/cho45/Plack-Middleware-ServerStatus>
+
+L<Plack::Middleware::ServerStatus::Tiny>
 
 =head1 LICENSE
 
