@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 sub prepare_app {
     my $self = shift;
@@ -41,7 +41,10 @@ sub prepare_app {
             $self->{__cidr6} = $cidr6;
         }
     }
-
+    else {
+        warn "[Plack::Middleware::ServerStatus::Lite] 'allow' is not provided. Any host will not be able to access server-status page.\n";
+    }
+    
     if ( $self->scoreboard ) {
         my $scoreboard = Parallel::Scoreboard->new(
             base_dir => $self->scoreboard
