@@ -30,7 +30,7 @@ no_index:
 provides:
   Plack::Middleware::ServerStatus::Lite:
     file: lib/Plack/Middleware/ServerStatus/Lite.pm
-    version: 0.19
+    version: 0.20
 requires:
   JSON: 2.53
   Net::CIDR::Lite: 0
@@ -42,10 +42,11 @@ resources:
   bugtracker: https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues
   homepage: https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite
   repository: git://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite.git
-version: 0.19
+version: 0.20
 x_contributors:
   - 'Jakob Voss <voss@gbv.de>'
   - 'Masahiro Chiba <chiba@everqueue.com>'
   - 'Jun Kuriyama <kuriyama@s2factory.co.jp>'
   - 'Karen Etheridge <ether@cpan.org>'
+  - 'Neil Bowers <neil@bowers.com>'
   - 'Masahiro Nagano <kazeburo@gmail.com>'
