@@ -3,6 +3,7 @@ Changes
 LICENSE
 META.json
 README.md
+bin/server-status
 cpanfile
 eg/status.psgi
 lib/Plack/Middleware/ServerStatus/Lite.pm
@@ -14,5 +15,6 @@ t/04_json.t
 t/05_counter.t
 t/06_counter_delayed_res.t
 t/07_skip_ps.t
+t/08_command.t
 META.yml
 MANIFEST

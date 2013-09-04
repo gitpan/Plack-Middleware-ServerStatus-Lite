@@ -50,6 +50,7 @@
       },
       "test" : {
          "requires" : {
+            "Capture::Tiny" : "0",
             "LWP::UserAgent" : "0",
             "Starman" : "0.3013",
             "Test::More" : "0",
@@ -60,7 +61,7 @@
    "provides" : {
       "Plack::Middleware::ServerStatus::Lite" : {
          "file" : "lib/Plack/Middleware/ServerStatus/Lite.pm",
-         "version" : "0.20"
+         "version" : "0.21"
       }
    },
    "release_status" : "stable",
@@ -74,7 +75,7 @@
          "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite"
       }
    },
-   "version" : "0.20",
+   "version" : "0.21",
    "x_contributors" : [
       "Jakob Voss <voss@gbv.de>",
       "Masahiro Chiba <chiba@everqueue.com>",
