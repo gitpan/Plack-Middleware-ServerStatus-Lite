@@ -61,7 +61,7 @@
    "provides" : {
       "Plack::Middleware::ServerStatus::Lite" : {
          "file" : "lib/Plack/Middleware/ServerStatus/Lite.pm",
-         "version" : "0.21"
+         "version" : "0.30"
       }
    },
    "release_status" : "stable",
@@ -75,7 +75,7 @@
          "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite"
       }
    },
-   "version" : "0.21",
+   "version" : "0.30",
    "x_contributors" : [
       "Jakob Voss <voss@gbv.de>",
       "Masahiro Chiba <chiba@everqueue.com>",
