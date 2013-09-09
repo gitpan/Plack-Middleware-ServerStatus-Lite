@@ -7,9 +7,19 @@ use Plack::Loader;
 use File::Temp;
 use Capture::Tiny qw/capture/;
 use File::Spec;
+use File::Path qw/remove_tree/;
 
-my $dir = File::Temp::tempdir( CLEANUP => 1 );
-my ($fh, $filename) = File::Temp::tempfile( UNLINK=>1, EXLOCK=>0 );
+my $installed = 0;
+eval {
+    require 'Plack/Handler/Starman.pm';
+    $installed = 1;
+};
+if (!$installed ) {
+    plan skip_all => 'Starman isnot installed';
+}
+
+my $dir = File::Temp::tempdir( CLEANUP => 0 );
+my ($fh, $filename) = File::Temp::tempfile( UNLINK=>0, EXLOCK=>0 );
 my $body = "Hello World" x 2048;
 my $body_len = length $body;
 
@@ -34,9 +44,10 @@ test_tcp(
         if ( $pid ) {
             sleep 1;
             my ($stdout, $stderr, $exit) = capture {
-                system( $^X, File::Spec->catfile('bin','server-status'),'--scoreboard',$dir,'--counter',$filename );
+                system( $^X, '-I' , join(":",@INC), File::Spec->catfile('bin','server-status'),'--scoreboard',$dir,'--counter',$filename );
             };
             is $exit, 0, 'exit code';
+            diag $stderr if $exit != 0;
             like $stdout, qr/IdleWorkers: 4/;
             like $stdout, qr/BusyWorkers: 1/;
         }
@@ -57,9 +68,10 @@ test_tcp(
         }
 
         my ($stdout, $stderr, $exit) = capture {
-            system( $^X, File::Spec->catfile('bin','server-status'), '--scoreboard',$dir,'--counter',$filename );
+            system( $^X, '-I' , join(":",@INC), File::Spec->catfile('bin','server-status'), '--scoreboard',$dir,'--counter',$filename );
         };
         is $exit, 0, 'exit code';
+        diag $stderr if $exit != 0;
         my $accesss = $max +1;
         like $stdout, qr/Total Accesses: $accesss/;
         my $kbyte = int( $body_len * $accesss / 1_000 );
@@ -79,5 +91,6 @@ test_tcp(
     },
 );
 
+remove_tree($dir,$filename);
 done_testing;
 
