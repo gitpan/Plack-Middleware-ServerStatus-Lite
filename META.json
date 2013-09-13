@@ -40,10 +40,12 @@
       },
       "runtime" : {
          "requires" : {
+            "Getopt::Long" : "2.38",
             "JSON" : "2.53",
             "Net::CIDR::Lite" : "0",
             "Parallel::Scoreboard" : "0.03",
             "Plack::Middleware" : "0",
+            "Pod::Usage" : "0",
             "Try::Tiny" : "0.09",
             "parent" : "0"
          }
@@ -61,7 +63,7 @@
    "provides" : {
       "Plack::Middleware::ServerStatus::Lite" : {
          "file" : "lib/Plack/Middleware/ServerStatus/Lite.pm",
-         "version" : "0.31"
+         "version" : "0.32"
       }
    },
    "release_status" : "stable",
@@ -75,7 +77,7 @@
          "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite"
       }
    },
-   "version" : "0.31",
+   "version" : "0.32",
    "x_contributors" : [
       "Jakob Voss <voss@gbv.de>",
       "Masahiro Chiba <chiba@everqueue.com>",
