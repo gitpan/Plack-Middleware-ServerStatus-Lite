@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 my $JSON = JSON->new->utf8(0);
 
@@ -54,6 +54,10 @@ sub prepare_app {
         $self->{__scoreboard} = $scoreboard;
     }
 
+    if ( $self->counter_file && ! -f $self->counter_file ) {
+        open( my $fh, '>>:unix', $self->counter_file )
+            or die "could not open counter_file: $!";
+    }
 }
 
 sub call {
@@ -259,8 +263,7 @@ sub counter {
     my $self = shift;
     my $parent_pid = getppid;
     if ( ! $self->{__counter} ) {
-        sysopen( my $fh, $self->counter_file, O_CREAT|O_RDWR ) or die "cannot open counter_file: $!";
-        autoflush $fh 1;
+        open( my $fh, '+<:unix', $self->counter_file ) or die "cannot open counter_file: $!";
         $self->{__counter} = $fh;
         flock $fh, LOCK_EX;
         my $len = sysread $fh, my $buf, 10;

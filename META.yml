@@ -31,7 +31,7 @@ no_index:
 provides:
   Plack::Middleware::ServerStatus::Lite:
     file: lib/Plack/Middleware/ServerStatus/Lite.pm
-    version: 0.32
+    version: 0.33
 requires:
   Getopt::Long: 2.38
   JSON: 2.53
@@ -45,7 +45,7 @@ resources:
   bugtracker: https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues
   homepage: https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite
   repository: git://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite.git
-version: 0.32
+version: 0.33
 x_contributors:
   - 'Jakob Voss <voss@gbv.de>'
   - 'Masahiro Chiba <chiba@everqueue.com>'

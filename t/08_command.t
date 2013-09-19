@@ -20,13 +20,15 @@ if (!$installed ) {
 
 my $dir = File::Temp::tempdir( CLEANUP => 0 );
 my ($fh, $filename) = File::Temp::tempfile( UNLINK=>0, EXLOCK=>0 );
+close($fh);
+unlink($filename);
 my $body = "Hello World" x 2048;
 my $body_len = length $body;
 
 my $app = builder {
     enable 'ServerStatus::Lite', 
         path => '/server-status',
-        allow=> [ '0.0.0.0/0', '::/0' ],
+        allow => [ '0.0.0.0/0', '::/0' ],
         scoreboard => $dir,
         counter_file => $filename;
     sub { 
