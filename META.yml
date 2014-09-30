@@ -3,21 +3,22 @@ abstract: "show server status like Apache's mod_status"
 author:
   - 'Masahiro Nagano <kazeburo {at} gmail.com>'
 build_requires:
-  Capture::Tiny: 0
-  LWP::UserAgent: 0
-  Starman: 0.3013
-  Test::More: 0
-  Test::TCP: 2.00
+  Capture::Tiny: '0'
+  LWP::UserAgent: '0'
+  Starman: '0.3013'
+  Test::More: '0'
+  Test::SharedFork: '0'
+  Test::TCP: '2.00'
 configure_requires:
-  CPAN::Meta: 0
-  CPAN::Meta::Prereqs: 0
-  Module::Build: 0.38
+  CPAN::Meta: '0'
+  CPAN::Meta::Prereqs: '0'
+  Module::Build: '0.38'
 dynamic_config: 0
-generated_by: 'Minilla/v0.6.4, CPAN::Meta::Converter version 2.130880'
+generated_by: 'Minilla/v1.1.0, CPAN::Meta::Converter version 2.141170'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: Plack-Middleware-ServerStatus-Lite
 no_index:
   directory:
@@ -28,24 +29,25 @@ no_index:
     - eg
     - examples
     - author
+    - builder
 provides:
   Plack::Middleware::ServerStatus::Lite:
     file: lib/Plack/Middleware/ServerStatus/Lite.pm
-    version: 0.33
+    version: '0.34'
 requires:
-  Getopt::Long: 2.38
-  JSON: 2.53
-  Net::CIDR::Lite: 0
-  Parallel::Scoreboard: 0.03
-  Plack::Middleware: 0
-  Pod::Usage: 0
-  Try::Tiny: 0.09
-  parent: 0
+  Getopt::Long: '2.38'
+  JSON: '2.53'
+  Net::CIDR::Lite: '0'
+  Parallel::Scoreboard: '0.03'
+  Plack::Middleware: '0'
+  Pod::Usage: '0'
+  Try::Tiny: '0.09'
+  parent: '0'
 resources:
   bugtracker: https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues
   homepage: https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite
   repository: git://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite.git
-version: 0.33
+version: '0.34'
 x_contributors:
   - 'Jakob Voss <voss@gbv.de>'
   - 'Masahiro Chiba <chiba@everqueue.com>'
